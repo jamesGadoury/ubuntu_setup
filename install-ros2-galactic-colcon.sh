@@ -27,4 +27,5 @@ sudo apt install ros-galactic-desktop
 
 sudo apt install python3-colcon-common-extensions
 
-
+# install ros1 bridge
+sudo apt install ros-galactic-ros1-bridge
