@@ -17,4 +17,5 @@ sudo rosdep init
 
 rosdep update
 
-sudo apt install ros-noetic-catkin
+sudo apt install python3-rosdep python3-catkin-tools
+
