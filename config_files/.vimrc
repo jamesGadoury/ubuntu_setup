@@ -15,8 +15,6 @@ filetype plugin indent on
 " TODO: Pick a leader key
 " let mapleader = ","
 
-" Use a line cursor within insert mode and a block cursor everywhere else.
-
 " Security
 set modelines=0
 

@@ -28,6 +28,9 @@ HIST_STAMPS="mm/dd/yyyy"
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(git)
 
+autoload -U add-zsh-hook
+add-zsh-hook -Uz chpwd (){ ls; }
+
 source $ZSH/oh-my-zsh.sh
 
 # User configuration
