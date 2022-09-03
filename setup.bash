@@ -17,6 +17,7 @@ alert_user () {
 log_step "Running update commands..."
 
 sudo apt update && sudo apt upgrade -y
+sudo apt install build-essential -y
 
 log_step "Installing zsh ..."
 sudo apt install zsh -y
