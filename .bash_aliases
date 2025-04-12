@@ -215,3 +215,13 @@ activate_conda() {
 }
 
 alias ml_env="activate_conda && conda activate ml"
+
+alias git-remote-to-ssh='REMOTE_URL=$(git remote get-url origin); \
+if [[ $REMOTE_URL == https://github.com/* ]]; then \
+  NEW_URL=$(echo $REMOTE_URL | sed "s|https://github.com/|git@github.com:|"); \
+  git remote set-url origin "$NEW_URL"; \
+  echo "Remote URL changed to SSH: $NEW_URL"; \
+else \
+  echo "Remote URL is already using SSH or not a GitHub HTTPS URL."; \
+fi'
+
