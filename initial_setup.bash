@@ -433,6 +433,28 @@ setup_pydrake_venv() {
     deactivate
 }
 
+###############################################################################
+# FUNCTION: install_rust
+# Description: Installs the Rust programming language using rustup if it 
+#              is not already installed.
+###############################################################################
+install_rust() {
+    print_green "Checking if Rust is installed..."
+    if command -v rustup >/dev/null 2>&1; then
+        print_green "Rust is already installed. Skipping."
+        return 0
+    fi
+
+    print_green "Installing Rust via rustup..."
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+
+    # Add the Cargo bin directory to PATH for the current session.
+    export PATH="$HOME/.cargo/bin:$PATH"
+
+    print_green "Rust installation complete."
+}
+
+
 
 ###############################################################################
 # FUNCTION: main
@@ -474,6 +496,8 @@ main() {
     setup_nvidia_utilities
 
     setup_pydrake_venv
+
+    install_rust
 
     cp -f "$ORIGINAL_DIR/.zshrc" ~/.zshrc
     cp -f "$ORIGINAL_DIR/.bash_aliases" ~/.bash_aliases
