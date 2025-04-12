@@ -1,6 +1,9 @@
 # NOTE: Keep this at beginning in case we want to enable profiling 
 # zmodload zsh/zprof
 
+# NOTE: Uncomment to get start time for logging
+# START_TIME=$(date +%s%N)
+
 # Only run these settings in interactive shells.
 [[ $- != *i* ]] && return
 
@@ -71,6 +74,11 @@ export PATH="$HOME/miniconda3/bin:$PATH"
 
 # Load additional alias definitions if they exist.
 [ -f ~/.bash_aliases ] && source ~/.bash_aliases
+
+# NOTE: to get time (make sure you uncomment up top)
+# END_TIME=$(date +%s%N)
+# ELAPSED_TIME=$(( (END_TIME - START_TIME) / 1000000 ))
+# echo "Zsh initialization took ${ELAPSED_TIME} ms"
 
 # NOTE: Keep this at end in case we want to profile loading
 # zprof
