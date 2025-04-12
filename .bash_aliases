@@ -192,30 +192,8 @@ alias get_removed_packages="awk '!/^Start|^Commandl|^End|^Upgrade:|^Error:/ { gs
 alias rs="tput reset"
 alias nv="nvim"
 
-activate_conda() {
-    # Determine the base directory of your Conda installation.
-    local CONDA_BASE
-    CONDA_BASE="$(conda info --base 2>/dev/null)"
-    
-    if [ -z "$CONDA_BASE" ]; then
-        echo "Conda does not appear to be installed or is not in your PATH."
-        return 1
-    fi
-
-    # Source the Conda initialization script. This step ensures that
-    # the 'conda' command and its functions are available in your shell.
-    local CONDA_SCRIPT="$CONDA_BASE/etc/profile.d/conda.sh"
-    if [ -f "$CONDA_SCRIPT" ]; then
-        source "$CONDA_SCRIPT"
-    else
-        echo "Error: Cannot find conda.sh at $CONDA_SCRIPT."
-        return 1
-    fi
-
-    # Activate the base environment; change 'base' to your preferred environment if needed.
-    conda activate base
-}
-
+alias activate_conda=". $HOME/miniconda3/etc/profile.d/conda.sh"
+alias conda_base_env="activate_conda && conda activate"
 alias ml_env="activate_conda && conda activate ml"
 
 alias git-remote-to-ssh='REMOTE_URL=$(git remote get-url origin); \
