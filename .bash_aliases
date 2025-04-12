@@ -28,7 +28,7 @@ alias myip='curl -s ifconfig.me'     # Get external IP address
 # Disk and Process Utilities
 # -----------------------------------------------------------------------------
 alias df='df -h'                   # Disk free in human-readable format
-alias du='du -sh *'                # Display disk usage of each file/directory
+alias du='du -h --max-depth=1'
 alias topmem='ps aux --sort=-%mem | head -n 10'  # Top 10 memory-consuming processes
 alias psg='ps aux | grep -v grep | grep -i'      # Search processes by keyword
 
