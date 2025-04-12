@@ -401,6 +401,40 @@ setup_nvidia_utilities() {
 }
 
 ###############################################################################
+# FUNCTION: setup_pydrake_venv
+# Description: Creates a Python virtual environment in your home directory 
+# for pydrake, and installs pydrake via pip along with some common dependencies.
+###############################################################################
+setup_pydrake_venv() {
+    print_green "Setting up a Python virtual environment for pydrake..."
+    VENV_DIR="$HOME/pydrake_venv"
+    
+    if [ -d "$VENV_DIR" ]; then
+        print_green "Virtual environment already exists at $VENV_DIR, skipping creation."
+    else
+        print_green "Creating virtual environment at $VENV_DIR..."
+        python3 -m venv "$VENV_DIR"
+    fi
+    
+    print_green "Activating virtual environment and installing pydrake via pip..."
+    source "$VENV_DIR/bin/activate"
+    
+    print_green "Upgrading pip..."
+    pip install --upgrade pip
+
+    print_green "Installing pydrake..."
+    pip install pydrake
+
+    print_green "Installing additional dependencies (numpy, scipy, matplotlib)..."
+    pip install numpy scipy matplotlib cvxpy
+
+    print_green "Virtual environment for pydrake is set up. To use it, run: source $VENV_DIR/bin/activate"
+    
+    deactivate
+}
+
+
+###############################################################################
 # FUNCTION: main
 # Description: Calls the above functions in order to perform the full setup.
 ###############################################################################
@@ -438,6 +472,8 @@ main() {
     configure_custom_keybindings
 
     setup_nvidia_utilities
+
+    setup_pydrake_venv
 
     cp -f "$ORIGINAL_DIR/.zshrc" ~/.zshrc
     cp -f "$ORIGINAL_DIR/.bash_aliases" ~/.bash_aliases
