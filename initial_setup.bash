@@ -378,23 +378,26 @@ setup_nvidia_utilities() {
     if lspci | grep -i nvidia > /dev/null; then
         print_green "NVIDIA GPU detected. Installing utilities..."
 
-        # Ensure dependencies
         sudo apt install -y nvtop
 
-        # Set up the NVIDIA Container Toolkit repo (Ubuntu 24.04)
-        curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /etc/apt/keyrings/nvidia-container-toolkit.gpg
+        # Check if nvidia-container-toolkit is already installed
+        if dpkg -s nvidia-container-toolkit >/dev/null 2>&1; then
+            print_green "nvidia-container-runtime is already installed. Skipping NVIDIA utilities setup."
+        else
+            # Set up the NVIDIA Container Toolkit repo (Ubuntu 24.04)
+            curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg \
+              && curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
+                sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
+                sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
 
-        distribution=$(. /etc/os-release; print_green $ID$VERSION_ID)
-        print_green "deb [signed-by=/etc/apt/keyrings/nvidia-container-toolkit.gpg] https://nvidia.github.io/libnvidia-container/stable/ubuntu24.04/$(uname -m) /" \
-            | sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list > /dev/null
+            sudo apt update
+            sudo apt install -y nvidia-container-toolkit
 
-        sudo apt update
-        sudo apt install -y nvidia-container-runtime
-
-        print_green "NVIDIA utilities installed. To use NVIDIA with Docker, set the default runtime:"
-        print_green "  sudo mkdir -p /etc/docker"
-        print_green "  print_green '{ \"default-runtime\": \"nvidia\", \"runtimes\": { \"nvidia\": { \"path\": \"nvidia-container-runtime\", \"runtimeArgs\": [] } } }' | sudo tee /etc/docker/daemon.json"
-        print_green "  sudo systemctl restart docker"
+            print_green "NVIDIA utilities installed. To use NVIDIA with Docker, set the default runtime:"
+            print_green "  sudo mkdir -p /etc/docker"
+            print_green "  echo '{ \"default-runtime\": \"nvidia\", \"runtimes\": { \"nvidia\": { \"path\": \"nvidia-container-runtime\", \"runtimeArgs\": [] } } }' | sudo tee /etc/docker/daemon.json"
+            print_green "  sudo systemctl restart docker"
+        fi
     else
         print_green "No NVIDIA GPU detected. Skipping NVIDIA utilities installation."
     fi
