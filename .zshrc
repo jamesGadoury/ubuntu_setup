@@ -74,6 +74,8 @@ export PATH="$HOME/miniconda3/bin:$PATH"
 
 # Load additional alias definitions if they exist.
 [ -f ~/.bash_aliases ] && source ~/.bash_aliases
+[ -f ~/.network_aliases ] && source ~/.network_aliases
+[ -f ~/.local_aliases ] && source ~/.local_aliases
 
 # NOTE: to get time (make sure you uncomment up top)
 # END_TIME=$(date +%s%N)
