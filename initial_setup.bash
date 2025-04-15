@@ -454,6 +454,30 @@ install_rust() {
     print_green "Rust installation complete."
 }
 
+update_shell_configs() {
+    local BACKUP_DIR="$HOME/backups"
+
+    # Create the backup directory if it doesn't exist
+    mkdir -p "$BACKUP_DIR"
+
+    # Generate a timestamp in the format YYYYMMDD-HHMMSS
+    local TIMESTAMP=$(date +"%Y%m%d-%H%M%S")
+
+    # Back up the current configuration files if they exist
+    if [ -f "$HOME/.zshrc" ]; then
+        print_green "Backing up $HOME/.zshrc to $BACKUP_DIR/.zshrc-$TIMESTAMP"
+        cp -f "$HOME/.zshrc" "$BACKUP_DIR/.zshrc-$TIMESTAMP"
+    fi
+
+    if [ -f "$HOME/.bash_aliases" ]; then
+        print_green "Backing up $HOME/.bash_aliases to $BACKUP_DIR/.bash_aliases-$TIMESTAMP"
+        cp -f "$HOME/.bash_aliases" "$BACKUP_DIR/.bash_aliases-$TIMESTAMP"
+    fi
+
+    # Overwrite the live configuration files with the new ones
+    cp -f "$ORIGINAL_DIR/.zshrc" "$HOME/.zshrc"
+    cp -f "$ORIGINAL_DIR/.bash_aliases" "$HOME/.bash_aliases"
+}
 
 
 ###############################################################################
@@ -499,8 +523,7 @@ main() {
 
     install_rust
 
-    cp -f "$ORIGINAL_DIR/.zshrc" ~/.zshrc
-    cp -f "$ORIGINAL_DIR/.bash_aliases" ~/.bash_aliases
+    update_shell_configs
 
     print_green "Ubuntu 24 setup complete at $(date)."
 }

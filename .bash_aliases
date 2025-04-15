@@ -206,3 +206,7 @@ else \
   echo "Remote URL is already using SSH or not a GitHub HTTPS URL."; \
 fi'
 
+
+if [[ -f "$HOME/.network_aliases" ]]; then
+    source "$HOME/.network_aliases"
+fi
