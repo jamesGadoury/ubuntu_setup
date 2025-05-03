@@ -69,9 +69,6 @@ export LSCOLORS=ExFxBxDxCxegedabagacad
 # Source fzf support if installed.
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
-# Extend PATH with additional directories.
-export PATH="$HOME/miniconda3/bin:$PATH"
-
 # Load additional alias definitions if they exist.
 [ -f ~/.bash_aliases ] && source ~/.bash_aliases
 [ -f ~/.network_aliases ] && source ~/.network_aliases
