@@ -4,7 +4,7 @@ set -euo pipefail
 set -x
 
 # Log file in your home directory
-log_file="$HOME/ubuntu24_setup.log"
+log_file="$HOME/ubuntu24-setup.log"
 exec > >(tee -a "$log_file") 2>&1
 
 # Trap errors to print a custom message indicating the line number
@@ -160,8 +160,8 @@ install_tilix() {
 # Description: Installs common development tools.
 ###############################################################################
 setup_system_tools() {
-    print_green "Installing system tools: build-essential, vim, cmake, gettext, unzip..."
-    apt install -y build-essential vim cmake gettext unzip
+    print_green "Installing system tools: build-essential, vim, cmake, gettext, unzip, tmux, xclip..."
+    apt install -y build-essential vim cmake gettext unzip tmux xclip
 }
 
 ###############################################################################
@@ -227,10 +227,10 @@ setup_neovim() {
     cp -rT "$local_template" "$target"
 
     # Run the template’s dependency script if present
-    if [ -f "$target/install_reqs.bash" ]; then
+    if [ -f "$target/install-reqs" ]; then
         pushd "$target" >/dev/null
-        chmod +x install_reqs.bash
-        ./install_reqs.bash
+        chmod +x install-reqs
+        ./install-reqs
         popd >/dev/null
     fi
 
@@ -561,7 +561,6 @@ main() {
     install_firacode
     setup_vim
     setup_neovim
-    setup_git
     setup_libraries
     install_systemclipboard
 
@@ -569,6 +568,7 @@ main() {
     if [ "$in_docker" = false ]; then
         install_tilix
         setup_docker
+        setup_git
         configure_custom_keybindings
         setup_nvidia_utilities
         setup_ssh_keys

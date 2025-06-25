@@ -3,14 +3,14 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV IN_DOCKER=true
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        git curl wget unzip fontconfig ca-certificates \
+        git curl wget tmux unzip fontconfig ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /opt/ubuntu_setup
+WORKDIR /opt/
 COPY . .
 
-RUN chmod +x initial_setup.bash \
- && /bin/bash initial_setup.bash
+RUN chmod +x run-initial-setup \
+ && /bin/bash run-initial-setup
 
 WORKDIR /workspace
 CMD ["/bin/zsh"]
