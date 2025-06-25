@@ -249,10 +249,8 @@ alias get_removed_packages="awk '!/^Start|^Commandl|^End|^Upgrade:|^Error:/ { gs
 alias rs="tput reset"
 alias nv="nvim"
 
-alias activate_conda=". $HOME/miniconda3/etc/profile.d/conda.sh"
-alias conda_base_env="activate_conda && conda activate"
-alias ml_env="activate_conda && conda activate ml"
-alias drake_env=". ~/pydrake_venv/bin/activate"
+alias ml_env="source ~/ml_venv/bin/activate"
+alias drake_env=". ~/drake_venv/bin/activate"
 
 alias git-remote-to-ssh='REMOTE_URL=$(git remote get-url origin); \
 if [[ $REMOTE_URL == https://github.com/* ]]; then \

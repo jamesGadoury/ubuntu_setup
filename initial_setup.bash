@@ -278,33 +278,95 @@ setup_ssh_keys() {
 }
 
 ###############################################################################
-# FUNCTION: setup_miniconda
-# Description: Installs Miniconda if not already present, initializes it for zsh,
-# and creates the default conda environment for machine learning.
+# FUNCTION: install_uv
+# Description: Installs Astral’s “uv” (fast Python package manager) using the
+#              official standalone installer. Installs to ~/.local/bin.
 ###############################################################################
-setup_miniconda() {
-    print_green "Checking if Miniconda is installed..."
-    if [ -d "$HOME/miniconda3" ]; then
-        print_green "Miniconda already installed. Skipping."
-    else
-        print_green "Installing Miniconda..."
-        mkdir -p "$HOME/miniconda3"
-        wget -q https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O "$HOME/miniconda3/miniconda.sh"
-        bash "$HOME/miniconda3/miniconda.sh" -b -u -p "$HOME/miniconda3"
-        rm -f "$HOME/miniconda3/miniconda.sh"
-        "$HOME/miniconda3/bin/conda" init zsh
-        print_green "Miniconda installed and initialized for zsh."
+install_uv() {
+    print_green "Checking if uv is installed..."
+    if command -v uv >/dev/null 2>&1; then
+        print_green "uv already installed. Skipping."
+        return 0
     fi
 
-    print_green "Checking if the 'ml' conda environment exists..."
-    if "$HOME/miniconda3/bin/conda" info --envs | grep -q "^ml\s"; then
-        print_green "'ml' conda environment already exists. Skipping environment creation."
-    else
-        print_green "Setting up default 'ml' environment..."
-        "$HOME/miniconda3/bin/conda" create -n ml -y
-        "$HOME/miniconda3/bin/conda" install -n ml -y pytorch torchvision torchaudio pytorch-cuda=11.8 scikit-learn numpy scipy pandas matplotlib -c conda-forge -c pytorch -c nvidia
-    fi
+    print_green "Installing uv (stand-alone installer)…"
+    # Official, always-latest installer (2025-06 docs) :contentReference[oaicite:0]{index=0}
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+
+    # Ensure this shell sees the freshly installed binary
+    export PATH="$HOME/.local/bin:$PATH"
+    print_green "uv installed to ~/.local/bin (add that to your shell PATH if needed)."
 }
+
+###############################################################################
+# FUNCTION: install_uv
+# Description: Installs Astral’s “uv” (fast Python package manager) using the
+#              official standalone installer. Installs to ~/.local/bin.
+###############################################################################
+install_uv() {
+    print_green "Checking if uv is installed..."
+    if command -v uv >/dev/null 2>&1; then
+        print_green "uv already installed. Skipping."
+        return 0
+    fi
+
+    print_green "Installing uv (stand-alone installer)…"
+    # Official, always-latest installer (2025-06 docs) :contentReference[oaicite:0]{index=0}
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+
+    # Ensure this shell sees the freshly installed binary
+    export PATH="$HOME/.local/bin:$PATH"
+    print_green "uv installed to ~/.local/bin (add that to your shell PATH if needed)."
+}
+
+
+###############################################################################
+# FUNCTION: setup_uv_ml_env
+# Description: Creates a uv-managed virtual environment at $HOME/ml_env and
+#              installs common ML / data-science packages using uv’s pip shim.
+###############################################################################
+setup_uv_ml_env() {
+    print_green "Setting up 'ml' uv virtual environment…"
+    VENV_DIR="$HOME/ml_venv"
+
+    if [ ! -d "$VENV_DIR" ]; then
+        # --seed → include pip / setuptools / wheel inside the venv
+        uv venv --seed "$VENV_DIR"
+    else
+        print_green "Virtual environment already exists at $VENV_DIR."
+    fi
+
+    print_green "Installing ML packages in the uv environment…"
+    # Activate so uv installs into the correct venv
+    source "$VENV_DIR/bin/activate"
+
+    uv pip install \
+        torch torchvision torchaudio \
+        scikit-learn numpy scipy pandas matplotlib
+
+    deactivate
+    print_green "'ml' uv environment ready (activate with: source $VENV_DIR/bin/activate)."
+}
+
+###############################################################################
+# FUNCTION: setup_pydrake_venv
+# Description: Creates a Python virtual environment in your home directory 
+# for drake, and installs pydrake via pip along with some common dependencies.
+###############################################################################
+setup_drake_venv() {
+    print_green "Setting up pydrake virtual environment with uv…"
+    VENV_DIR="$HOME/drake_venv"
+
+    if [ ! -d "$VENV_DIR" ]; then
+        uv venv --seed "$VENV_DIR"
+    fi
+
+    source "$VENV_DIR/bin/activate"
+    uv pip install drake numpy scipy matplotlib cvxpy
+    deactivate
+}
+
+
 
 ###############################################################################
 # FUNCTION: setup_docker
@@ -437,39 +499,6 @@ setup_nvidia_utilities() {
 }
 
 ###############################################################################
-# FUNCTION: setup_pydrake_venv
-# Description: Creates a Python virtual environment in your home directory 
-# for pydrake, and installs pydrake via pip along with some common dependencies.
-###############################################################################
-setup_pydrake_venv() {
-    print_green "Setting up a Python virtual environment for pydrake..."
-    VENV_DIR="$HOME/pydrake_venv"
-    
-    if [ -d "$VENV_DIR" ]; then
-        print_green "Virtual environment already exists at $VENV_DIR, skipping creation."
-    else
-        print_green "Creating virtual environment at $VENV_DIR..."
-        python3 -m venv "$VENV_DIR"
-    fi
-    
-    print_green "Activating virtual environment and installing pydrake via pip..."
-    source "$VENV_DIR/bin/activate"
-    
-    print_green "Upgrading pip..."
-    pip install --upgrade pip
-
-    print_green "Installing pydrake..."
-    pip install pydrake
-
-    print_green "Installing additional dependencies (numpy, scipy, matplotlib)..."
-    pip install numpy scipy matplotlib cvxpy
-
-    print_green "Virtual environment for pydrake is set up. To use it, run: source $VENV_DIR/bin/activate"
-    
-    deactivate
-}
-
-###############################################################################
 # FUNCTION: install_rust
 # Description: Installs the Rust programming language using rustup if it 
 #              is not already installed.
@@ -533,7 +562,6 @@ main() {
     setup_vim
     setup_neovim
     setup_git
-    setup_miniconda
     setup_libraries
     install_systemclipboard
 
@@ -549,8 +577,10 @@ main() {
     fi
     # ------------------------------------------------------------------------
 
-    setup_pydrake_venv
     install_rust
+    install_uv
+    setup_uv_ml_env
+    setup_drake_venv
     update_shell_configs
 
     print_green "Ubuntu 24 setup complete at $(date)."

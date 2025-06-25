@@ -74,6 +74,9 @@ export LSCOLORS=ExFxBxDxCxegedabagacad
 [ -f ~/.network_aliases ] && source ~/.network_aliases
 [ -f ~/.local_aliases ] && source ~/.local_aliases
 
+export PATH="$HOME/.local/bin:$PATH"
+
+
 # NOTE: to get time (make sure you uncomment up top)
 # END_TIME=$(date +%s%N)
 # ELAPSED_TIME=$(( (END_TIME - START_TIME) / 1000000 ))
