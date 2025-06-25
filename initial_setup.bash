@@ -21,6 +21,8 @@ print_green "Starting Ubuntu 24 setup script at $(date)"
 ORIGINAL_DIR="$(pwd)"
 print_green "Original working directory: $ORIGINAL_DIR"
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 ###############################################################################
 # Detect whether we are running inside a Docker (or other OCI) container.
 # – /.dockerenv  ⇢ present in most image builds and `docker run` sessions
@@ -28,7 +30,9 @@ print_green "Original working directory: $ORIGINAL_DIR"
 # You can add other heuristics if you wish (e.g. checking $container from systemd)
 ###############################################################################
 in_docker=false
-if [ -f "/.dockerenv" ]; then
+if [ -n "${IN_DOCKER:-}" ]; then            # << new: honour env-var
+    in_docker=true
+elif [ -f "/.dockerenv" ]; then
     in_docker=true
 elif grep -qaE '(docker|lxc|kubepods)' /proc/1/cgroup 2>/dev/null; then
     in_docker=true
@@ -194,33 +198,42 @@ EOF
 
 ###############################################################################
 # FUNCTION: setup_neovim
-# Description: Clones, builds, and installs Neovim if not already installed,
-# and sets up the Neovim template.
+# Description: Installs Neovim if missing and copies a local nvim-template
+#              directory when it is available; otherwise falls back to git clone.
 ###############################################################################
 setup_neovim() {
     print_green "Checking if Neovim is installed..."
-    if command -v nvim >/dev/null 2>&1; then
-        print_green "Neovim already installed. Skipping building Neovim."
+    if ! command -v nvim >/dev/null 2>&1; then
+        print_green "Installing Neovim (release-0.10 branch)…"
+        git clone --depth=1 -b release-0.10 https://github.com/neovim/neovim.git \
+                  "$HOME/neovim-source"
+        pushd "$HOME/neovim-source" >/dev/null
+        make CMAKE_BUILD_TYPE=RelWithDebInfo && make install
+        popd >/dev/null
     else
-        print_green "Installing Neovim (release-0.10 branch)..."
-        git clone https://github.com/neovim/neovim.git -b release-0.10 ~/neovim-source
-        pushd ~/neovim-source > /dev/null
-        make CMAKE_BUILD_TYPE=RelWithDebInfo
-        make install
-        popd > /dev/null
+        print_green "Neovim already installed. Skipping build."
     fi
 
-    print_green "Checking if Neovim template is set up..."
-    if [ -d "$HOME/.config/nvim" ]; then
-        print_green "Neovim template already exists. Skipping cloning template."
-    else
-        print_green "Cloning Neovim template..."
-        git clone https://github.com/jamesGadoury/nvim-template "$HOME/.config/nvim"
-        pushd "$HOME/.config/nvim" > /dev/null
+    # ---- Template -----------------------------------------------------------
+    local target="$HOME/.config/nvim"
+    if [ -d "$target" ]; then
+        print_green "Neovim template already exists at $target. Skipping."
+        return 0
+    fi
+
+    # Prefer the *local* copy if it exists
+    local local_template="$SCRIPT_DIR/nvim-template"
+    mkdir -p "$(dirname "$target")"
+    cp -rT "$local_template" "$target"
+
+    # Run the template’s dependency script if present
+    if [ -f "$target/install_reqs.bash" ]; then
+        pushd "$target" >/dev/null
         chmod +x install_reqs.bash
         ./install_reqs.bash
-        popd > /dev/null
+        popd >/dev/null
     fi
+
     print_green "Neovim setup completed."
 }
 
@@ -520,17 +533,17 @@ main() {
     setup_vim
     setup_neovim
     setup_git
-    setup_ssh_keys
     setup_miniconda
     setup_libraries
     install_systemclipboard
 
     # --- only for *non-container* hosts -------------------------------------
-    if ! $in_docker; then
+    if [ "$in_docker" = false ]; then
         install_tilix
         setup_docker
         configure_custom_keybindings
         setup_nvidia_utilities
+        setup_ssh_keys
     else
         print_green "Docker environment detected – skipping GUI/NVIDIA/Docker-in-Docker steps."
     fi
