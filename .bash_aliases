@@ -66,6 +66,58 @@ count_unique() {
 alias count_lines='awk '\''{count++} END {print count}'\'''
 
 # -----------------------------------------------------------------------------
+# Useful File copying / moving
+#
+
+flat_copy() {
+  if [ $# -ne 2 ]; then
+    echo "Usage: flat_copy <src_dir> <dest_dir>"
+    return 1
+  fi
+  local src_dir="$1" dest_dir="$2"
+  mkdir -p "$dest_dir"
+  # find every file, cp it (basename only) into dest_dir
+  find "$src_dir" -type f -print0 \
+    | xargs -0 -I{} cp -- "{}" "$dest_dir"/
+}
+
+flat_move() {
+  if [ $# -ne 2 ]; then
+    echo "Usage: flat_move <src_dir> <dest_dir>"
+    return 1
+  fi
+  local src_dir="$1" dest_dir="$2"
+  mkdir -p "$dest_dir"
+  find "$src_dir" -type f -print0 \
+    | xargs -0 -I{} mv -- "{}" "$dest_dir"/
+}
+
+scp_flatten() {
+  if [ $# -ne 3 ]; then
+    echo "Usage: scp_flatten <user@host> <remote_dir> <local_dest>"
+    return 1
+  fi
+  local remote="$1" remote_dir="$2" local_dest="$3"
+  mkdir -p "$local_dest"
+  # list all remote files (null-delim), then scp them one by one
+  ssh "$remote" "find '$remote_dir' -type f -print0" \
+    | xargs -0 -I{} scp "$remote":"{}" "$local_dest"/
+}
+
+rsync_flatten() {
+  if [ $# -ne 3 ]; then
+    echo "Usage: rsync_flatten <user@host> <remote_dir> <local_dest>"
+    return 1
+  fi
+  local remote="$1" remote_dir="$2" local_dest="$3"
+  mkdir -p "$local_dest"
+  # find on remote, feed null-delimited list into rsync --files-from
+  ssh "$remote" "cd '$remote_dir' && find . -type f -print0" \
+    | rsync -av --from0 --files-from=- --no-relative \
+        "$remote":"$remote_dir"/ "$local_dest"/
+}
+
+# -----------------------------------------------------------------------------
 # File Searching Aliases
 # -----------------------------------------------------------------------------
 alias grep='grep --color=auto'     # Grep with color highlighting
