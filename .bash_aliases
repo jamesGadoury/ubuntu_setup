@@ -249,8 +249,8 @@ alias get_removed_packages="awk '!/^Start|^Commandl|^End|^Upgrade:|^Error:/ { gs
 alias rs="tput reset"
 alias nv="nvim"
 
-alias ml_env="source ~/ml_venv/bin/activate"
-alias drake_env="source ~/drake_venv/bin/activate"
+alias ml_env="source ~/ml-venv/bin/activate"
+alias drake_env="source ~/drake-venv/bin/activate"
 
 git_remote_to_ssh() {
     REMOTE_URL=$(git remote get-url origin); \

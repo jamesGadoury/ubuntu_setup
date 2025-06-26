@@ -327,7 +327,7 @@ install_uv() {
 ###############################################################################
 setup_uv_ml_env() {
     print_green "Setting up 'ml' uv virtual environment…"
-    VENV_DIR="$HOME/ml_venv"
+    VENV_DIR="$HOME/ml-venv"
 
     if [ ! -d "$VENV_DIR" ]; then
         # --seed → include pip / setuptools / wheel inside the venv
@@ -355,7 +355,7 @@ setup_uv_ml_env() {
 ###############################################################################
 setup_drake_venv() {
     print_green "Setting up pydrake virtual environment with uv…"
-    VENV_DIR="$HOME/drake_venv"
+    VENV_DIR="$HOME/drake-venv"
 
     if [ ! -d "$VENV_DIR" ]; then
         uv venv --seed "$VENV_DIR"
