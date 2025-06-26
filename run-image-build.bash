@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 set -euo pipefail
-docker build --no-cache -t dev-env -f docker-env/Dockerfile .
+docker build -t dev-env -f docker-env/Dockerfile .
 echo "✅ Image built: dev-env"
