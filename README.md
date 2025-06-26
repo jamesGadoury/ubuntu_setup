@@ -20,7 +20,7 @@ ubuntu dev env:
 
 ```
 # mount current dir into /workspace:
-docker run --hostname dev-container --name dev-container --rm -it \
+docker run --hostname dev-env --rm -it \
     -v "$(pwd)":/workspace \
     dev-env
 ```
