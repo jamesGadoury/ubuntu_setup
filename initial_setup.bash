@@ -22,20 +22,6 @@ ORIGINAL_DIR="$(pwd)"
 print_green "Original working directory: $ORIGINAL_DIR"
 
 ###############################################################################
-# Detect whether we are running inside a Docker (or other OCI) container.
-# – /.dockerenv  ⇢ present in most image builds and `docker run` sessions
-# – /proc/1/cgroup ⇢ will contain “docker” or “kubepods” when PID 1 is namespaced
-# You can add other heuristics if you wish (e.g. checking $container from systemd)
-###############################################################################
-in_docker=false
-if [ -f "/.dockerenv" ]; then
-    in_docker=true
-elif grep -qaE '(docker|lxc|kubepods)' /proc/1/cgroup 2>/dev/null; then
-    in_docker=true
-fi
-
-
-###############################################################################
 # FUNCTION: install_firacode
 # Description: Downloads the FiraCode zip from GitHub (via Nerd Fonts release), 
 # extracts it, installs the TTF files if they’re not already installed, and updates 
@@ -144,11 +130,11 @@ install_tilix() {
     fi
 
     print_green "Installing Tilix..."
-    apt update
-    apt install -y tilix
+    sudo apt update
+    sudo apt install -y tilix
     print_green "Tilix installed."
     print_green "Select Tilix as default terminal emulator:"
-    update-alternatives --config x-terminal-emulator
+    sudo update-alternatives --config x-terminal-emulator
 }
 
 ###############################################################################
@@ -157,7 +143,7 @@ install_tilix() {
 ###############################################################################
 setup_system_tools() {
     print_green "Installing system tools: build-essential, vim, cmake, gettext, unzip..."
-    apt install -y build-essential vim cmake gettext unzip
+    sudo apt install -y build-essential vim cmake gettext unzip
 }
 
 ###############################################################################
@@ -206,7 +192,7 @@ setup_neovim() {
         git clone https://github.com/neovim/neovim.git -b release-0.10 ~/neovim-source
         pushd ~/neovim-source > /dev/null
         make CMAKE_BUILD_TYPE=RelWithDebInfo
-        make install
+        sudo make install
         popd > /dev/null
     fi
 
@@ -304,21 +290,21 @@ setup_docker() {
         return 0
     fi
     print_green "Installing Docker Engine..."
-    apt update
-    apt install -y ca-certificates curl gnupg lsb-release
-    mkdir -p /etc/apt/keyrings
+    sudo apt update
+    sudo apt install -y ca-certificates curl gnupg lsb-release
+    sudo mkdir -p /etc/apt/keyrings
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
-      | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+      | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 
     print_green "Adding the Docker APT repository…"
     # ▶️ use plain echo (no color codes) when writing to /etc/apt/sources.list.d
     echo \
 "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
 https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
-      | tee /etc/apt/sources.list.d/docker.list > /dev/null
+      | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
-    apt update
-    apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+    sudo apt update
+    sudo apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
     print_green "Docker Engine installed."
 }
 
@@ -328,11 +314,11 @@ https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
 ###############################################################################
 setup_libraries() {
     print_green "Installing libraries: Eigen, PCL, OpenCV, CLI11..."
-    apt install -y libeigen3-dev libeigen3-doc
-    apt install -y libpcl-dev libpcl-doc pcl-tools
-    apt install -y libopencv-dev
-    apt install -y libcli11-dev
-    apt install -y btop
+    sudo apt install -y libeigen3-dev libeigen3-doc
+    sudo apt install -y libpcl-dev libpcl-doc pcl-tools
+    sudo apt install -y libopencv-dev
+    sudo apt install -y libcli11-dev
+    sudo apt install -y btop
     print_green "Libraries installed."
 }
 
@@ -348,7 +334,7 @@ install_systemclipboard() {
     fi
 
     print_green "Installing system clipboard tool: xsel..."
-    apt install -y xsel
+    sudo apt install -y xsel
 }
 
 ###############################################################################
@@ -363,7 +349,7 @@ install_zsh() {
     fi
 
     print_green "Installing zsh, curl, and git..."
-    apt install -y zsh curl git
+    sudo apt install -y zsh curl git
 }
 
 ###############################################################################
@@ -398,25 +384,25 @@ setup_nvidia_utilities() {
     if lspci | grep -i nvidia > /dev/null; then
         print_green "NVIDIA GPU detected. Installing utilities..."
 
-        apt install -y nvtop
+        sudo apt install -y nvtop
 
         # Check if nvidia-container-toolkit is already installed
         if dpkg -s nvidia-container-toolkit >/dev/null 2>&1; then
             print_green "nvidia-container-runtime is already installed. Skipping NVIDIA utilities setup."
         else
             # Set up the NVIDIA Container Toolkit repo (Ubuntu 24.04)
-            curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg \
+            curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg \
               && curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
                 sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
-                tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+                sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
 
-            apt update
-            apt install -y nvidia-container-toolkit
+            sudo apt update
+            sudo apt install -y nvidia-container-toolkit
 
             print_green "NVIDIA utilities installed. To use NVIDIA with Docker, set the default runtime:"
-            print_green "  mkdir -p /etc/docker"
-            print_green "  echo '{ \"default-runtime\": \"nvidia\", \"runtimes\": { \"nvidia\": { \"path\": \"nvidia-container-runtime\", \"runtimeArgs\": [] } } }' | tee /etc/docker/daemon.json"
-            print_green "  systemctl restart docker"
+            print_green "  sudo mkdir -p /etc/docker"
+            print_green "  echo '{ \"default-runtime\": \"nvidia\", \"runtimes\": { \"nvidia\": { \"path\": \"nvidia-container-runtime\", \"runtimeArgs\": [] } } }' | sudo tee /etc/docker/daemon.json"
+            print_green "  sudo systemctl restart docker"
         fi
     else
         print_green "No NVIDIA GPU detected. Skipping NVIDIA utilities installation."
@@ -510,34 +496,42 @@ update_shell_configs() {
 main() {
     print_green "Starting Ubuntu automated setup..."
 
-    apt update
+    sudo apt update
+
     setup_system_tools
 
     install_zsh
     install_oh_my_zsh
     install_oh_my_zsh_plugins
+
+    install_tilix
+
     install_firacode
+
     setup_vim
+
     setup_neovim
+
     setup_git
+
     setup_ssh_keys
+
     setup_miniconda
+
+    setup_docker
+
     setup_libraries
+
     install_systemclipboard
 
-    # --- only for *non-container* hosts -------------------------------------
-    if ! $in_docker; then
-        install_tilix
-        setup_docker
-        configure_custom_keybindings
-        setup_nvidia_utilities
-    else
-        print_green "Docker environment detected – skipping GUI/NVIDIA/Docker-in-Docker steps."
-    fi
-    # ------------------------------------------------------------------------
+    configure_custom_keybindings
+
+    setup_nvidia_utilities
 
     setup_pydrake_venv
+
     install_rust
+
     update_shell_configs
 
     print_green "Ubuntu 24 setup complete at $(date)."

@@ -2,5 +2,5 @@
 
 ```
 chmod +x ./initial_setup.bash
-sudo ./initial_setup.bash
+./initial_setup.bash
 ```
